@@ -10,21 +10,23 @@ if [[ "$FFMPEG_ST" != "yes" ]]; then
     -pthread
     -s USE_PTHREADS=1                             # enable pthreads support
     -s PROXY_TO_PTHREAD=1                         # detach main() from browser/UI main thread
-    -o wasm/packages/core.mp4-scale/dist/ffmpeg-core.js
+		-s INITIAL_MEMORY=1073741824                  # 1GB
   )
 else
-  mkdir -p wasm/packages/core-st.mp4-scale/dist
+  DISTDIR="wasm/packages/core-st.mp4-scale/dist"
   EXPORTED_FUNCTIONS="[_main]"
   EXTRA_FLAGS=(
-    -o wasm/packages/core-st.mp4-scale/dist/ffmpeg-core.js
+		-s INITIAL_MEMORY=33554432                   # 32MB
+		-s MAXIMUM_MEMORY=1073741824                  # 1GB
+		-s ALLOW_MEMORY_GROWTH=1
   )
 fi
-
+mkdir -p "$DISTDIR"
 FLAGS=(
   -I. -I./fftools -I$BUILD_DIR/include
-  -Llibavcodec -Llibavdevice -Llibavfilter -Llibavformat -Llibavresample -Llibavutil -Llibpostproc -Llibswscale -Llibswresample -L$BUILD_DIR/lib
+  -Llibavcodec -Llibavfilter -Llibavformat -Llibavutil -Llibswscale -Llibswresample -L$BUILD_DIR/lib
   -Wno-deprecated-declarations -Wno-pointer-sign -Wno-implicit-int-float-conversion -Wno-switch -Wno-parentheses -Qunused-arguments
-  -lavdevice -lavfilter -lavformat -lavcodec -lswresample -lswscale -lavutil -lpostproc -lm -lx264
+  -lavfilter -lavformat -lavcodec -lswresample -lswscale -lavutil -lm -lx264
   fftools/ffmpeg_opt.c fftools/ffmpeg_filter.c fftools/ffmpeg_hw.c fftools/cmdutils.c fftools/ffmpeg.c
   -s USE_SDL=2                                  # use SDL2
   -s INVOKE_RUN=0                               # not to run the main() in the beginning
